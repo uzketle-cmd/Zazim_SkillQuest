@@ -203,6 +203,34 @@
         </div>
     </section>
 
+    <!-- Verification Status Section -->
+    <section class="verification-status">
+        <div class="container">
+            <div class="status-card">
+                <div class="status-icon">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <div class="status-content">
+                    <h3>Email Verification Active</h3>
+                    <p>All demo accounts require email verification to simulate real-world authentication flow.</p>
+                    <div class="status-stats">
+                        <div class="status-stat">
+                            <i class="fas fa-user-check"></i>
+                            <span><span id="verifiedUsers">0</span> Verified Users</span>
+                        </div>
+                        <div class="status-stat">
+                            <i class="fas fa-clock"></i>
+                            <span><span id="pendingVerifications">0</span> Pending</span>
+                        </div>
+                        <div class="status-stat">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Secure Authentication</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Game Demos Section -->
     <section class="games-section" id="demo">
@@ -672,25 +700,6 @@
                             <h2>Continue Learning</h2>
                             <a href="#" class="view-all" onclick="switchDashboardTab('learning')">View All</a>
                         </div>
-                        <div class="module-card-large">
-                            <div class="module-icon-large">
-                                <i class="fas fa-heartbeat"></i> <!-- Changed to health icon -->
-                            </div>
-                            <div class="module-content">
-                                <h4>Health Safety Training</h4>
-                                <p>Learn essential workplace health and safety procedures and regulations.</p>
-                                <div class="module-meta">
-                                    <span><i class="far fa-clock"></i> 15 minutes</span>
-                                    <span><i class="fas fa-star"></i> Intermediate</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 40%;"></div>
-                                </div>
-                                <button class="btn btn-accent" onclick="startQuiz('health-safety')">
-                                    <i class="fas fa-play"></i> Start Quiz
-                                </button>
-                            </div>
-                        </div>
                         <div class="module-cards-large">
                             <div class="module-card-large">
                                 <div class="module-icon-large">
@@ -706,10 +715,12 @@
                                     <div class="progress-bar">
                                         <div class="progress-fill" id="fireSafetyProgress"></div>
                                     </div>
-
-                                    <button class="btn btn-accent" onclick="startQuiz('fire-safety')">
-                                        <i class="fas fa-play"></i> Start Quiz
+                                    <button class="btn btn-accent" onclick="startModule('fire-safety')" id="fireSafetyBtn">
+                                        Start
                                     </button>
+                                    <button class="btn btn-accent" onclick="startQuiz('fire-safety')">
+    <i class="fas fa-play"></i> Start Quiz
+</button>
                                 </div>
                             </div>
                             <div class="module-card-large">
@@ -726,8 +737,8 @@
                                     <div class="progress-bar">
                                         <div class="progress-fill" id="gdprProgress"></div>
                                     </div>
-                                    <button class="btn btn-accent" onclick="startQuiz('fire-safety')">
-                                        <i class="fas fa-play"></i> Start Quiz
+                                    <button class="btn btn-secondary" onclick="startModule('gdpr')" id="gdprBtn">
+                                        Start
                                     </button>
                                 </div>
                             </div>
