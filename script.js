@@ -11,6 +11,11 @@ let verificationCode = null;
 let verificationTimer = null;
 let pendingVerificationEmail = null;
 
+// Add these to your global scope
+window.openQuiz = openQuiz;
+window.closeQuiz = closeQuiz;
+window.restartQuiz = restartQuiz;
+
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize app
@@ -27,6 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize animations
     animateProgressBars();
+
+     // Initialize quiz engine and UI
+    if (!window.quizEngine) {
+        window.quizEngine = new QuizEngine();
+    }
+    if (!window.quizUI) {
+        window.quizUI = new QuizUI();
+    }
+    
+    // Update dashboard on load
+    if (window.currentUser) {
+        updateModuleButtons();
+        updateProgressBars();
+    }
 });
 
 // Initialize application
@@ -45,40 +64,102 @@ function initializeApp() {
         }));
     }
     
+    // Initialize quiz system
+    initializeQuizSystem();
+    
     // Create test account if it doesn't exist
     createTestAccount();
     updateUserStatsDisplay();
 }
 
+// Initialize quiz system
+function initializeQuizSystem() {
+    // Ensure quiz services are available
+    if (!window.llmService) {
+        console.log('Initializing LLM Service...');
+        window.llmService = new LLMService();
+    }
+    
+    if (!window.quizEngine) {
+        console.log('Initializing Quiz Engine...');
+        window.quizEngine = new QuizEngine();
+    }
+    
+    if (!window.quizUI) {
+        console.log('Initializing Quiz UI...');
+        window.quizUI = new QuizUI();
+    }
+    
+    // Set up quiz-related event listeners
+    setupQuizEventListeners();
+}
+
+// Set up quiz event listeners
+function setupQuizEventListeners() {
+    // Close quiz when clicking outside modal
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('quizModal');
+        if (modal && e.target === modal) {
+            closeQuiz();
+        }
+    });
+    
+    // Close quiz with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeQuiz();
+        }
+    });
+}
+
 // Create test account
 function createTestAccount() {
-    const users = JSON.parse(localStorage.getItem('zazim_users')) || {};
+    const users = JSON.parse(localStorage.getItem('zazim_users') || '{}');
     
-    if (!users['test@zazim.com']) {
-        users['test@zazim.com'] = {
+    if (!users['test@example.com']) {
+        users['test@example.com'] = {
             name: 'Test User',
-            email: 'test@zazim.com',
-            password: 'Password123',
+            email: 'test@example.com',
+            password: 'Test@123',
             verified: true,
-            industry: 'manufacturing',
-            createdAt: new Date().toISOString(),
+            points: 1250,
+            streakDays: 42,
             stats: {
-                points: 850,
-                level: 2,
-                completedModules: 2,
-                learningTime: 45,
-                streak: 7,
-                achievements: ['safety-first', 'quick-learner'],
                 modules: {
-                    'fire-safety': { progress: 100, completed: true },
-                    'health-safety': { progress: 75, completed: false },
-                    'gdpr': { progress: 30, completed: false }
-                }
+                    'fire-safety': {
+                        progress: 75,
+                        lastAttempt: new Date().toISOString(),
+                        score: 85
+                    },
+                    'health-safety': {
+                        progress: 100,
+                        lastAttempt: new Date().toISOString(),
+                        score: 92
+                    },
+                    'gdpr': {
+                        progress: 0,
+                        lastAttempt: null,
+                        score: 0
+                    }
+                },
+                totalQuizzes: 15,
+                averageScore: 78,
+                badges: ['Safety First', 'Quiz Master', 'Consistent Learner']
+            },
+            preferences: {
+                notifications: true,
+                darkMode: false,
+                soundEffects: true
             }
         };
         
         localStorage.setItem('zazim_users', JSON.stringify(users));
-        updateStats();
+        
+        // Update global stats
+        const stats = JSON.parse(localStorage.getItem('zazim_stats') || '{}');
+        stats.totalUsers = Object.keys(users).length;
+        stats.verifiedUsers++;
+        localStorage.setItem('zazim_stats', JSON.stringify(stats));
     }
 }
 
@@ -512,71 +593,406 @@ function loadDashboardData() {
     }
     
     // Update button states based on progress
-    //updateModuleButtons();
+    updateModuleButtons();
     
     // Load achievements
     loadAchievements();
 }
 
 // Update module buttons
-/*function updateModuleButtons() {
+// Update module buttons
+function updateModuleButtons() {
     const modules = currentUser.stats.modules || {};
     
-    // Fire Safety
-    const fireSafetyStartBtn = document.getElementById('fireSafetyStartBtn');
-    const fireSafetyContinueBtn = document.getElementById('fireSafetyContinueBtn');
-    if (fireSafetyStartBtn && fireSafetyContinueBtn) {
-        if (modules['fire-safety']?.progress === 0) {
-            fireSafetyStartBtn.style.display = 'flex';
-            fireSafetyContinueBtn.style.display = 'none';
-        } else if (modules['fire-safety']?.progress === 100) {
-            fireSafetyStartBtn.style.display = 'none';
-            fireSafetyContinueBtn.style.display = 'flex';
-            fireSafetyContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Review';
-        } else {
-            fireSafetyStartBtn.style.display = 'none';
-            fireSafetyContinueBtn.style.display = 'flex';
-            fireSafetyContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Continue';
+    // Define all modules for easier management
+    const moduleConfigs = [
+        { 
+            id: 'fire-safety', 
+            startBtn: 'fireSafetyStartBtn', 
+            continueBtn: 'fireSafetyContinueBtn',
+            name: 'Fire Safety Training'
+        },
+        { 
+            id: 'health-safety', 
+            startBtn: 'healthSafetyStartBtn', 
+            continueBtn: 'healthSafetyContinueBtn',
+            name: 'Health and Safety'
+        },
+        { 
+            id: 'gdpr', 
+            startBtn: 'gdprStartBtn', 
+            continueBtn: 'gdprContinueBtn',
+            name: 'GDPR Compliance'
         }
+    ];
+    
+    moduleConfigs.forEach(config => {
+        const startBtn = document.getElementById(config.startBtn);
+        const continueBtn = document.getElementById(config.continueBtn);
+        const progress = modules[config.id]?.progress || 0;
+        
+        if (startBtn && continueBtn) {
+            if (progress === 0) {
+                // Not started - show Start, hide Continue
+                startBtn.style.display = 'flex';
+                continueBtn.style.display = 'none';
+                
+                // Update Start button to open quiz
+                startBtn.onclick = () => openQuiz(config.id, config.name);
+                continueBtn.onclick = null;
+            } else if (progress === 100) {
+                // Completed - hide Start, show Review
+                startBtn.style.display = 'none';
+                continueBtn.style.display = 'flex';
+                continueBtn.innerHTML = '<i class="fas fa-redo"></i> Review';
+                continueBtn.className = 'btn btn-review';
+                
+                // Update Review button to open quiz
+                continueBtn.onclick = () => openQuiz(config.id, config.name, true);
+            } else {
+                // In progress - hide Start, show Continue
+                startBtn.style.display = 'none';
+                continueBtn.style.display = 'flex';
+                continueBtn.innerHTML = '<i class="fas fa-redo"></i> Continue';
+                continueBtn.className = 'btn btn-secondary';
+                
+                // Update Continue button to open quiz
+                continueBtn.onclick = () => openQuiz(config.id, config.name);
+            }
+        }
+    });
+}
+
+// Add CSS for Review button
+const style = document.createElement('style');
+style.textContent = `
+    .btn-review {
+        background: linear-gradient(135deg, #FF9800, #FF5722);
+        color: white;
+        border: none;
+    }
+    .btn-review:hover {
+        background: linear-gradient(135deg, #FF5722, #FF9800);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+    }
+`;
+document.head.appendChild(style);
+
+
+
+// Function to open quiz for a module
+async function openQuiz(moduleId, moduleName, isReview = false) {
+    try {
+        // Show loading state
+        showQuizLoading(moduleName);
+        
+        // Start the quiz
+        const result = await quizEngine.startQuiz(moduleId);
+        
+        if (result.success) {
+            // Render the quiz modal
+            renderQuizModal(moduleName, result.firstQuestion);
+            
+            // Set up event handlers
+            setupQuizHandlers(moduleId, isReview);
+        } else {
+            alert('Failed to start quiz. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error starting quiz:', error);
+        alert('Error starting quiz. Please try again.');
+    }
+}
+
+// Show loading animation for quiz
+function showQuizLoading(moduleName) {
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'quiz-loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Preparing ${moduleName} Quiz...</div>
+            <div class="loading-subtext">AI is generating personalized questions</div>
+        </div>
+    `;
+    
+    document.body.appendChild(loadingOverlay);
+    
+    // Remove after 1.5 seconds (simulated loading)
+    setTimeout(() => {
+        if (loadingOverlay.parentElement) {
+            loadingOverlay.remove();
+        }
+    }, 1500);
+}
+
+// Render quiz modal
+function renderQuizModal(moduleName, questionData) {
+    // Remove any existing quiz modal
+    const existingModal = document.getElementById('quizModal');
+    if (existingModal) {
+        existingModal.remove();
     }
     
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'quizModal';
+    modal.className = 'modal';
+    
+    const progress = (questionData.questionNumber / questionData.totalQuestions) * 100;
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            ${quizUI.renderQuizHeader(moduleName, 0, 0, questionData.questionNumber, questionData.totalQuestions)}
+            ${quizUI.renderProgressBar(progress)}
+            <div class="quiz-body-scrollable">
+                ${quizUI.renderQuestion(questionData)}
+                ${quizUI.renderNextButton(questionData.questionNumber === questionData.totalQuestions)}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add close button functionality
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    `;
+    closeBtn.onclick = closeQuiz;
+    modal.querySelector('.quiz-header').appendChild(closeBtn);
+    
+    // Prevent body scrolling when modal is open
+    document.body.style.overflow = 'hidden';
+}
+
+// Set up quiz event handlers
+function setupQuizHandlers(moduleId, isReview) {
+    // Handle option selection
+    const optionButtons = document.querySelectorAll('.option-button');
+    optionButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const selectedIndex = parseInt(e.currentTarget.dataset.index);
+            
+            // Disable all buttons during processing
+            optionButtons.forEach(btn => btn.disabled = true);
+            
+            // Show loading
+            const loadingOverlay = quizUI.showLoading();
+            
+            try {
+                // Submit answer
+                const result = await quizEngine.submitAnswer(selectedIndex);
+                
+                // Hide loading
+                quizUI.hideLoading(loadingOverlay);
+                
+                // Show feedback
+                quizUI.showAnswerFeedback(selectedIndex, result.correctAnswer);
+                quizUI.updateScore(result.updatedScore);
+                quizUI.updateStreak(result.updatedStreak);
+                
+                // Show explanation
+                if (result.explanation) {
+                    const explanationHtml = quizUI.renderExplanation(result.explanation);
+                    quizUI.showExplanation(explanationHtml);
+                }
+                
+                // Enable next button
+                const nextButton = document.getElementById('nextQuestionBtn');
+                if (nextButton) {
+                    nextButton.disabled = false;
+                    nextButton.style.opacity = '1';
+                    nextButton.style.cursor = 'pointer';
+                    
+                    // Store result for next question
+                    window.currentQuizResult = result;
+                }
+                
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                quizUI.hideLoading(loadingOverlay);
+                optionButtons.forEach(btn => btn.disabled = false);
+            }
+        });
+    });
+    
+    // Handle next button
+    const nextButton = document.getElementById('nextQuestionBtn');
+    if (nextButton) {
+        nextButton.addEventListener('click', async () => {
+            const result = window.currentQuizResult;
+            
+            if (result.isComplete) {
+                // Show results
+                const results = await quizEngine.calculateFinalResults();
+                
+                // Update user progress
+                updateUserProgress(moduleId, results.accuracy);
+                
+                // Save results
+                quizEngine.saveResults();
+                
+                // Display results
+                const modalContent = document.querySelector('#quizModal .modal-content');
+                modalContent.innerHTML = quizUI.renderResults(results);
+                
+                // Add close and restart buttons
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = `
+                    padding: 20px;
+                    text-align: center;
+                    background: white;
+                `;
+                buttonContainer.innerHTML = `
+                    <button class="btn btn-primary" onclick="restartQuiz('${moduleId}')" style="margin-right: 10px;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                    <button class="btn btn-outline" onclick="closeQuiz()">
+                        <i class="fas fa-times"></i> Close Quiz
+                    </button>
+                `;
+                modalContent.appendChild(buttonContainer);
+            } else {
+                // Move to next question
+                const nextQuestion = result.nextQuestion;
+                const progress = (nextQuestion.questionNumber / nextQuestion.totalQuestions) * 100;
+                
+                // Update UI
+                quizUI.updateProgressBar(progress);
+                
+                // Update header
+                const header = document.querySelector('.quiz-header');
+                header.innerHTML = quizUI.renderQuizHeader(
+                    moduleName || 'Quiz',
+                    result.updatedScore,
+                    result.updatedStreak,
+                    nextQuestion.questionNumber,
+                    nextQuestion.totalQuestions
+                );
+                
+                // Update question
+                const questionContainer = document.querySelector('.question-container');
+                questionContainer.innerHTML = quizUI.renderQuestion(nextQuestion);
+                
+                // Update next button
+                const nextButtonContainer = document.querySelector('.next-button-container');
+                nextButtonContainer.innerHTML = quizUI.renderNextButton(
+                    nextQuestion.questionNumber === nextQuestion.totalQuestions
+                );
+                
+                // Re-attach event handlers
+                setupQuizHandlers(moduleId, isReview);
+            }
+        });
+    }
+}
+
+// Update user progress after quiz
+function updateUserProgress(moduleId, accuracy) {
+    if (!currentUser.stats.modules) {
+        currentUser.stats.modules = {};
+    }
+    
+    // Convert accuracy to progress (0-100)
+    const newProgress = Math.min(100, Math.max(0, accuracy));
+    
+    // Only update if new score is higher (for progress tracking)
+    const currentProgress = currentUser.stats.modules[moduleId]?.progress || 0;
+    if (newProgress > currentProgress) {
+        currentUser.stats.modules[moduleId] = {
+            progress: newProgress,
+            lastAttempt: new Date().toISOString(),
+            score: newProgress
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        // Update dashboard UI
+        updateModuleButtons();
+        updateProgressBars();
+    }
+}
+
+// Close quiz modal
+function closeQuiz() {
+    const modal = document.getElementById('quizModal');
+    if (modal) {
+        modal.remove();
+    }
+    document.body.style.overflow = 'auto';
+    
+    // Reset quiz engine if quiz was incomplete
+    if (quizEngine.currentQuiz && !quizEngine.quizResults) {
+        quizEngine.resetQuiz();
+    }
+}
+
+// Restart quiz
+function restartQuiz(moduleId) {
+    closeQuiz();
+    const moduleName = getModuleName(moduleId);
+    openQuiz(moduleId, moduleName);
+}
+
+// Helper function to get module name
+function getModuleName(moduleId) {
+    const modules = {
+        'fire-safety': 'Fire Safety Training',
+        'health-safety': 'Health and Safety',
+        'gdpr': 'GDPR Compliance'
+    };
+    return modules[moduleId] || moduleId.replace('-', ' ');
+}
+
+// Update progress bars on dashboard
+function updateProgressBars() {
+    const modules = currentUser.stats.modules || {};
+    
     // Health Safety
-    const healthSafetyStartBtn = document.getElementById('healthSafetyStartBtn');
-    const healthSafetyContinueBtn = document.getElementById('healthSafetyContinueBtn');
-    if (healthSafetyStartBtn && healthSafetyContinueBtn) {
-        if (modules['health-safety']?.progress === 0) {
-            healthSafetyStartBtn.style.display = 'flex';
-            healthSafetyContinueBtn.style.display = 'none';
-        } else if (modules['health-safety']?.progress === 100) {
-            healthSafetyStartBtn.style.display = 'none';
-            healthSafetyContinueBtn.style.display = 'flex';
-            healthSafetyContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Review';
-        } else {
-            healthSafetyStartBtn.style.display = 'none';
-            healthSafetyContinueBtn.style.display = 'flex';
-            healthSafetyContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Continue';
-        }
+    const healthSafetyProgress = document.getElementById('healthSafetyProgress');
+    if (healthSafetyProgress) {
+        const progress = modules['health-safety']?.progress || 0;
+        healthSafetyProgress.style.width = `${progress}%`;
+    }
+    
+    // Fire Safety
+    const fireSafetyProgress = document.getElementById('fireSafetyProgress');
+    if (fireSafetyProgress) {
+        const progress = modules['fire-safety']?.progress || 0;
+        fireSafetyProgress.style.width = `${progress}%`;
     }
     
     // GDPR
-    const gdprStartBtn = document.getElementById('gdprStartBtn');
-    const gdprContinueBtn = document.getElementById('gdprContinueBtn');
-    if (gdprStartBtn && gdprContinueBtn) {
-        if (modules.gdpr?.progress === 0) {
-            gdprStartBtn.style.display = 'flex';
-            gdprContinueBtn.style.display = 'none';
-        } else if (modules.gdpr?.progress === 100) {
-            gdprStartBtn.style.display = 'none';
-            gdprContinueBtn.style.display = 'flex';
-            gdprContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Review';
-        } else {
-            gdprStartBtn.style.display = 'none';
-            gdprContinueBtn.style.display = 'flex';
-            gdprContinueBtn.innerHTML = '<i class="fas fa-redo"></i> Continue';
-        }
+    const gdprProgress = document.getElementById('gdprProgress');
+    if (gdprProgress) {
+        const progress = modules.gdpr?.progress || 0;
+        gdprProgress.style.width = `${progress}%`;
     }
 }
-    */
+
+
+
+
+
+    
 
 // Update user points display
 function updateUserPoints() {
