@@ -512,14 +512,14 @@ function loadDashboardData() {
     }
     
     // Update button states based on progress
-    updateModuleButtons();
+    //updateModuleButtons();
     
     // Load achievements
     loadAchievements();
 }
 
 // Update module buttons
-function updateModuleButtons() {
+/*function updateModuleButtons() {
     const modules = currentUser.stats.modules || {};
     
     // Fire Safety
@@ -576,6 +576,7 @@ function updateModuleButtons() {
         }
     }
 }
+    */
 
 // Update user points display
 function updateUserPoints() {
