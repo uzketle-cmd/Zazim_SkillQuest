@@ -1352,54 +1352,57 @@ async function startQuiz(moduleId) {
     }
 }
 
-    // Render a question
-    function renderQuestion(questionData) {
-        if (!quizModal || !questionData) return;
-        
-        const moduleName = questionData.category.replace('-', ' ').toUpperCase();
-        const progress = ((questionData.questionNumber - 1) / questionData.totalQuestions) * 100;
-        
-        // Build quiz UI
-        quizModal.innerHTML = `
-            <div class="modal-content" style="max-width: 900px;">
-                <div class="modal-header">
-                    <h3>${moduleName} Training Quiz</h3>
-                    <button class="close-modal" onclick="closeQuiz()">&times;</button>
-                </div>
-                <div class="modal-body" id="quizBody">
-                    ${quizUI.renderQuizHeader(
-                        moduleName,
-                        questionData.score || 0,  // Note: swapped these two parameters
-                        questionData.streak || 0,
-                        questionData.questionNumber,
-                        questionData.totalQuestions
-                    )}
-                    ${quizUI.renderProgressBar(progress)}
-                    ${quizUI.renderQuestion(questionData)}
-                    ${quizUI.renderNextButton(questionData.questionNumber === questionData.totalQuestions)}
-                </div>
+// Render a question
+function renderQuestion(questionData) {
+    if (!quizModal || !questionData) return;
+    
+    const moduleName = questionData.category.replace('-', ' ').toUpperCase();
+    const progress = ((questionData.questionNumber - 1) / questionData.totalQuestions) * 100;
+    
+    // Build quiz UI
+    quizModal.innerHTML = `
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>${moduleName} Training Quiz</h3>
+                <button class="close-modal" onclick="closeQuiz()">&times;</button>
             </div>
-        `;
+            <div class="modal-body" id="quizBody">
+                ${quizUI.renderQuizHeader(
+                    moduleName,
+                    questionData.score || 0,
+                    questionData.streak || 0,
+                    questionData.questionNumber,
+                    questionData.totalQuestions
+                )}
+                ${quizUI.renderProgressBar(progress)}
+                ${quizUI.renderQuestion(questionData)}
+                ${quizUI.renderNextButton(questionData.questionNumber === questionData.totalQuestions)}
+            </div>
+        </div>
+    `;
+    
+    // IMPORTANT: Set the quizContainer for QuizUI
+    quizUI.quizContainer = quizModal.querySelector('.modal-content');
+    
+    // Add event listeners AFTER the HTML is in the DOM
+    setTimeout(() => {
+        // Add event listeners for options
+        const options = document.querySelectorAll('.option-button');
+        options.forEach(option => {
+            option.addEventListener('click', handleAnswerSelection);
+        });
         
-        // Add event listeners AFTER the HTML is in the DOM
-        setTimeout(() => {
-            // Add event listeners for options
-            const options = document.querySelectorAll('.option-button');
-            options.forEach(option => {
-                option.addEventListener('click', handleAnswerSelection);
-            });
-            
-            // Add event listener for next button
-            const nextButton = document.getElementById('nextQuestionBtn');
-            if (nextButton) {
-                nextButton.addEventListener('click', handleNextQuestion);
-                // Make sure it's initially disabled
-                nextButton.disabled = true;
-                nextButton.style.opacity = '0.5';
-                nextButton.style.cursor = 'not-allowed';
-            }
-        }, 100);
-    }
+        // Add event listener for next button
+        const nextButton = document.getElementById('nextQuestionBtn');
+        if (nextButton) {
+            nextButton.addEventListener('click', handleNextQuestion);
+            // Make sure it's initially disabled
+            nextButton.disabled = true;
+            nextButton.style.opacity = '0.5';
+            nextButton.style.cursor = 'not-allowed';
+        }
+    }, 100);
+}
 
 // Handle answer selection
 // script.js - Update handleAnswerSelection function

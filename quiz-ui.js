@@ -629,7 +629,7 @@ class QuizUI {
 
     // Add this method to the QuizUI class
     enableNextButton() {
-        const nextButton = this.quizContainer?.querySelector('#nextQuestionBtn');
+        const nextButton = document.getElementById('nextQuestionBtn');
         if (nextButton) {
             nextButton.disabled = false;
             nextButton.style.opacity = '1';
@@ -748,24 +748,24 @@ class QuizUI {
     
     // Update progress bar
     updateProgressBar(progress) {
-        const progressFill = this.quizContainer?.querySelector('.progress-fill');
+        const progressFill = document.querySelector('.progress-fill');
         if (progressFill) {
             progressFill.style.width = `${progress}%`;
         }
     }
-    
+
     // Update score display
     updateScore(score) {
-        const scoreElement = this.quizContainer?.querySelector('#quizScore');
+        const scoreElement = document.getElementById('quizScore');
         if (scoreElement) {
             scoreElement.textContent = score;
             this.animateValue(scoreElement, parseInt(scoreElement.textContent), score, 500);
         }
     }
-    
+
     // Update streak display
     updateStreak(streak) {
-        const streakElement = this.quizContainer?.querySelector('#quizStreak');
+        const streakElement = document.getElementById('quizStreak');
         if (streakElement) {
             streakElement.textContent = streak;
             
@@ -781,7 +781,8 @@ class QuizUI {
     
     // Show explanation
     showExplanation(explanationHtml) {
-        const explanationContainer = this.quizContainer?.querySelector('#quizExplanation');
+        // Look for explanation container in document
+        const explanationContainer = document.getElementById('quizExplanation');
         if (explanationContainer) {
             explanationContainer.innerHTML = explanationHtml;
             explanationContainer.style.display = 'block';
@@ -794,20 +795,9 @@ class QuizUI {
         }
     }
     
-    // Enable next button
-    enableNextButton() {
-        const nextButton = this.quizContainer?.querySelector('#nextQuestionBtn');
-        if (nextButton) {
-            nextButton.disabled = false;
-            nextButton.style.opacity = '1';
-            nextButton.style.cursor = 'pointer';
-            nextButton.classList.remove('disabled');
-        }
-    }
-    
-    // Show correct/incorrect animation
+   // Show correct/incorrect animation
     showAnswerFeedback(selectedIndex, correctIndex) {
-        const options = this.quizContainer?.querySelectorAll('.option-button');
+        const options = document.querySelectorAll('.option-button');
         if (!options) return;
         
         // Mark correct answer
