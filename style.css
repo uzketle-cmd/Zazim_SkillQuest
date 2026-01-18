@@ -1324,6 +1324,472 @@ header {
     display: block;
 }
 
+
+
+
+/* Add these styles to your existing style.css */
+
+/* Verification Status Section */
+.verification-status {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.status-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-icon {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    flex-shrink: 0;
+}
+
+.status-content h3 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.status-stats {
+    display: flex;
+    gap: 30px;
+    margin-top: 25px;
+}
+
+.status-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+}
+
+.status-stat i {
+    font-size: 1.2rem;
+}
+
+/* Password Input with Toggle */
+.password-input {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.toggle-password:hover {
+    color: var(--primary);
+}
+
+/* Password Strength Indicator */
+.password-strength {
+    margin-top: 10px;
+}
+
+.strength-bar {
+    height: 5px;
+    background: var(--gray-lighter);
+    border-radius: 3px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.strength-bar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--danger);
+    transition: width 0.3s, background 0.3s;
+}
+
+.strength-bar.weak::after {
+    width: 25%;
+    background: var(--danger);
+}
+
+.strength-bar.medium::after {
+    width: 50%;
+    background: var(--warning);
+}
+
+.strength-bar.strong::after {
+    width: 75%;
+    background: var(--success);
+}
+
+.strength-bar.very-strong::after {
+    width: 100%;
+    background: var(--secondary);
+}
+
+.strength-text {
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+/* Input Hint */
+.input-hint {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 5px;
+}
+
+/* Code Inputs */
+.code-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.code-input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 2px solid var(--gray-lighter);
+    border-radius: var(--radius);
+    background: white;
+    transition: all 0.3s;
+}
+
+.code-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(42, 75, 140, 0.1);
+    outline: none;
+}
+
+.code-input.filled {
+    border-color: var(--secondary);
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+/* Timer */
+.timer {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--light);
+    border-radius: var(--radius);
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.timer.expiring {
+    color: var(--accent);
+    background: rgba(255, 107, 53, 0.1);
+}
+
+/* Verification Content */
+.verification-content {
+    text-align: center;
+}
+
+.verification-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(42, 75, 140, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    color: var(--primary);
+    font-size: 2.5rem;
+}
+
+.verification-email {
+    background: var(--light);
+    padding: 15px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    margin: 15px 0 25px;
+    color: var(--primary);
+}
+
+.verification-actions {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    justify-content: center;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-text:hover {
+    text-decoration: underline;
+}
+
+.verification-note {
+    margin-top: 25px;
+    padding: 15px;
+    background: var(--light);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.verification-note i {
+    color: var(--primary);
+    margin-right: 8px;
+}
+
+/* Success Modal */
+.success-content {
+    text-align: center;
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    color: var(--secondary);
+    font-size: 3rem;
+}
+
+.user-welcome {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    margin: 25px 0;
+    padding: 20px;
+    background: var(--light);
+    border-radius: var(--radius);
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.success-features {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.success-feature {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--light);
+    border-radius: var(--radius);
+    text-align: left;
+}
+
+.success-feature i {
+    color: var(--secondary);
+    font-size: 1.5rem;
+    width: 30px;
+}
+
+.demo-instructions {
+    margin-top: 25px;
+    padding: 15px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-size: 0.9rem;
+}
+
+/* Challenge Progress */
+.challenge-progress {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.challenge-step {
+    text-align: center;
+    position: relative;
+}
+
+.challenge-step.active .step-number {
+    background: var(--primary);
+    color: white;
+}
+
+.challenge-step.completed .step-number {
+    background: var(--secondary);
+    color: white;
+}
+
+.challenge-step.active::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 3px;
+    background: var(--primary);
+    top: 25px;
+    right: -30px;
+}
+
+.challenge-step:last-child::after {
+    display: none;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gray-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+/* Demo Preview */
+.demo-preview {
+    text-align: center;
+}
+
+.demo-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.demo-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--light);
+    border-radius: var(--radius);
+}
+
+.demo-feature i {
+    color: var(--secondary);
+}
+
+.demo-note {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 15px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--gray);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--gray-lighter);
+}
+
+/* Progress Bar Animation */
+@keyframes progressFill {
+    from { width: 0%; }
+    to { width: var(--progress-width); }
+}
+
+.progress-fill {
+    animation: progressFill 1s ease-out;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .status-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .status-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .code-inputs {
+        gap: 5px;
+    }
+    
+    .code-input {
+        width: 40px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .challenge-progress {
+        gap: 15px;
+    }
+    
+    .challenge-step.active::after {
+        width: 15px;
+        right: -15px;
+    }
+}
+
+
+
+
+
 /* Contact Section */
 .contact {
     padding: 100px 0;
