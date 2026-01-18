@@ -700,6 +700,26 @@
                             <h2>Continue Learning</h2>
                             <a href="#" class="view-all" onclick="switchDashboardTab('learning')">View All</a>
                         </div>
+                        <div class="module-card-large">
+                            <div class="module-icon-large">
+                                <i class="fas fa-heartbeat"></i> <!-- Changed to health icon -->
+                            </div>
+                            <div class="module-content">
+                                <h4>Health Safety Training</h4>
+                                <p>Learn essential workplace health and safety procedures and regulations.</p>
+                                <div class="module-meta">
+                                    <span><i class="far fa-clock"></i> 15 minutes</span>
+                                    <span><i class="fas fa-star"></i> Intermediate</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 40%;"></div>
+                                </div>
+                                <button class="btn btn-accent" onclick="startQuiz('health-safety')">
+                                    <i class="fas fa-play"></i> Start Quiz
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div class="module-cards-large">
                             <div class="module-card-large">
                                 <div class="module-icon-large">
@@ -715,12 +735,9 @@
                                     <div class="progress-bar">
                                         <div class="progress-fill" id="fireSafetyProgress"></div>
                                     </div>
-                                    <button class="btn btn-accent" onclick="startModule('fire-safety')" id="fireSafetyBtn">
-                                        Start
-                                    </button>
                                     <button class="btn btn-accent" onclick="startQuiz('fire-safety')">
-    <i class="fas fa-play"></i> Start Quiz
-</button>
+                                        <i class="fas fa-play"></i> Start Quiz
+                                    </button>
                                 </div>
                             </div>
                             <div class="module-card-large">
@@ -738,7 +755,7 @@
                                         <div class="progress-fill" id="gdprProgress"></div>
                                     </div>
                                     <button class="btn btn-secondary" onclick="startModule('gdpr')" id="gdprBtn">
-                                        Start
+                                        Start Quiz
                                     </button>
                                 </div>
                             </div>
