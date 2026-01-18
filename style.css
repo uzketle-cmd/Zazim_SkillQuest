@@ -328,7 +328,7 @@ header {
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--gray-lighter);
     position: relative;
-    height: 600px;
+    height: 550px;
     display: flex;
     flex-direction: column;
 }
