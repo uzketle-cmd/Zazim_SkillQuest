@@ -328,7 +328,7 @@ header {
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--gray-lighter);
     position: relative;
-    height: 400px;
+    height: auto;
     display: flex;
     flex-direction: column;
 }
@@ -374,6 +374,8 @@ header {
     flex-direction: column;
     gap: 15px;
     flex: 1;
+    overflow-y: auto; /* Add scroll if content overflows */
+    max-height: 280px; /* Optional: set a max height */
 }
 
 .module-card {
