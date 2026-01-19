@@ -2,6 +2,63 @@
 // Handles all quiz interface components and animations
 
 class QuizUI {
+
+    // Handle window resize for responsive scrolling
+    handleWindowResize() {
+        const modalContent = document.querySelector('#quizModal .modal-content');
+        const modal = document.getElementById('quizModal');
+        
+        if (!modalContent || !modal) return;
+        
+        const viewportHeight = window.innerHeight;
+        const contentHeight = modalContent.scrollHeight;
+        
+        // If content is taller than viewport, make modal scrollable
+        if (contentHeight > viewportHeight - 40) {
+            modal.style.alignItems = 'flex-start';
+            modalContent.style.maxHeight = (viewportHeight - 40) + 'px';
+            modalContent.style.overflowY = 'auto';
+        } else {
+            modal.style.alignItems = 'center';
+            modalContent.style.maxHeight = 'none';
+            modalContent.style.overflowY = 'visible';
+        }
+    }
+    
+    // Initialize resize handler
+    initScrollHandling() {
+        window.addEventListener('resize', () => this.handleWindowResize());
+        
+        // Initial check
+        setTimeout(() => this.handleWindowResize(), 100);
+        
+        // Also check after content loads
+        setTimeout(() => this.handleWindowResize(), 500);
+    }
+    
+    // Update the showExplanation method to scroll properly
+    showExplanation(explanationHtml) {
+        const explanationContainer = document.getElementById('quizExplanation');
+        if (explanationContainer) {
+            explanationContainer.innerHTML = explanationHtml;
+            explanationContainer.style.display = 'block';
+            
+            // Handle scrolling on small screens
+            setTimeout(() => {
+                this.handleWindowResize();
+                
+                // Scroll the modal content if needed
+                const modalContent = document.querySelector('#quizModal .modal-content');
+                if (modalContent && modalContent.scrollHeight > window.innerHeight - 100) {
+                    explanationContainer.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start'
+                    });
+                }
+            }, 100);
+        }
+    }
+
     constructor() {
         this.quizContainer = null;
         this.currentQuestionElement = null;
@@ -21,6 +78,9 @@ class QuizUI {
         
         // Initialize UI components
         this.initializeStyles();
+
+        // Initialize scroll handling
+        setTimeout(() => this.initScrollHandling(), 100);
     }
     
     // Initialize CSS styles
@@ -40,10 +100,10 @@ class QuizUI {
                 height: 100%;
                 background-color: rgba(0,0,0,0.85);
                 z-index: 9999;
-                align-items: center;
+                align-items: flex-start;
                 justify-content: center;
                 padding: 20px;
-                overflow: auto;
+                overflow-y: auto;
                 animation: modalFadeIn 0.3s ease;
             }
             
@@ -51,24 +111,23 @@ class QuizUI {
             #quizModal .modal-content {
                 width: 100%;
                 max-width: 900px;
-                height: 95vh;
-                max-height: 95vh;
+                min-height: auto; 
+                max-height: none;
                 background: white;
                 border-radius: 20px;
-                overflow: hidden;
+                overflow: visible;
                 display: flex;
                 flex-direction: column;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.3);
                 animation: slideUp 0.4s ease;
-                margin: auto;
+                margin: 20px auto;
             }
 
             /* Make entire quiz container scrollable */
             .quiz-container {
                 display: flex;
                 flex-direction: column;
-                height: 100%;
-                max-height: 95vh;
+                min-height: 0;
                 scroll-behavior: smooth;
             }
             
@@ -367,7 +426,7 @@ class QuizUI {
                 text-align: center;
                 animation: fadeIn 0.8s ease;
                 overflow-y: auto;
-                max-height: calc(95vh - 160px);
+                max-height: none;
             }
             
             .results-header {
@@ -476,6 +535,7 @@ class QuizUI {
                 #quizModal.modal {
                     padding: 10px;
                     overflow-y: auto;
+                    align-items: flex-start;
                 }
                 
                 #quizModal .modal-content {
