@@ -5,58 +5,73 @@ class QuizUI {
 
     // Handle window resize for responsive scrolling
     handleWindowResize() {
-        const modalContent = document.querySelector('#quizModal .modal-content');
+    const modalContent = document.querySelector('#quizModal .modal-content');
         const modal = document.getElementById('quizModal');
-        
+    
         if (!modalContent || !modal) return;
-        
+    
         const viewportHeight = window.innerHeight;
-        const contentHeight = modalContent.scrollHeight;
-        
-        // If content is taller than viewport, make modal scrollable
-        if (contentHeight > viewportHeight - 40) {
-            modal.style.alignItems = 'flex-start';
-            modalContent.style.maxHeight = (viewportHeight - 40) + 'px';
-            modalContent.style.overflowY = 'auto';
-        } else {
-            modal.style.alignItems = 'center';
-            modalContent.style.maxHeight = 'none';
-            modalContent.style.overflowY = 'visible';
-        }
+        // leave a small margin so sticky header/footer remain visible
+        const allowed = Math.max(200, viewportHeight - 40);
+        modalContent.style.maxHeight = allowed + 'px';
+        modal.style.alignItems = (modalContent.scrollHeight > viewportHeight - 40) ? 'flex-start' : 'center';
+        // ensure modalContent is scrollable
+        modalContent.style.overflowY = 'auto';
     }
     
-    // Initialize resize handler
+    // Initialize resize handler and mutation observer
     initScrollHandling() {
-        window.addEventListener('resize', () => this.handleWindowResize());
-        
-        // Initial check
-        setTimeout(() => this.handleWindowResize(), 100);
-        
-        // Also check after content loads
-        setTimeout(() => this.handleWindowResize(), 500);
+        // Debounced resize listener
+        let t;
+        const onResize = () => {
+            clearTimeout(t);
+            t = setTimeout(() => this.handleWindowResize(), 80);
+        };
+        window.addEventListener('resize', onResize);
+    
+        // Initial check after styles applied
+        setTimeout(() => this.handleWindowResize(), 60);
+        setTimeout(() => this.handleWindowResize(), 400);
+    
+        // Observe changes inside modal-content (dynamic insertions)
+        const modalContent = document.querySelector('#quizModal .modal-content');
+        if (modalContent && window.MutationObserver) {
+            const mo = new MutationObserver(() => {
+                // small delay to allow DOM to settle
+                clearTimeout(t);
+                t = setTimeout(() => this.handleWindowResize(), 60);
+            });
+            mo.observe(modalContent, { childList: true, subtree: true, characterData: true });
+            // store it so we can disconnect later if needed
+            this._modalMutationObserver = mo;
+        }
     }
     
     // Update the showExplanation method to scroll properly
     showExplanation(explanationHtml) {
         const explanationContainer = document.getElementById('quizExplanation');
-        if (explanationContainer) {
-            explanationContainer.innerHTML = explanationHtml;
-            explanationContainer.style.display = 'block';
-            
-            // Handle scrolling on small screens
-            setTimeout(() => {
-                this.handleWindowResize();
-                
-                // Scroll the modal content if needed
-                const modalContent = document.querySelector('#quizModal .modal-content');
-                if (modalContent && modalContent.scrollHeight > window.innerHeight - 100) {
-                    explanationContainer.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start'
-                    });
-                }
-            }, 100);
-        }
+        const modalContent = document.querySelector('#quizModal .modal-content');
+    
+        if (!explanationContainer || !modalContent) return;
+    
+        explanationContainer.innerHTML = explanationHtml;
+        explanationContainer.style.display = 'block';
+    
+        // allow layout to update then scroll modal-content so explanation is visible
+        setTimeout(() => {
+            this.handleWindowResize();
+    
+            // compute top of explanation relative to modalContent scrollTop
+            const modalRect = modalContent.getBoundingClientRect();
+            const targetRect = explanationContainer.getBoundingClientRect();
+            const offset = 16; // small padding above the target
+            const targetTop = (targetRect.top - modalRect.top) + modalContent.scrollTop - offset;
+    
+            modalContent.scrollTo({
+                top: Math.max(0, targetTop),
+                behavior: 'smooth'
+            });
+        }, 120);
     }
 
     constructor() {
@@ -92,44 +107,40 @@ class QuizUI {
         style.textContent = `
             /* Full Screen Quiz Modal */
             #quizModal.modal {
-                display: flex;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.85);
-                z-index: 9999;
-                align-items: flex-start;
-                justify-content: center;
-                padding: 20px;
-                overflow-y: auto;
-                animation: modalFadeIn 0.3s ease;
-            }
+            display: flex;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 9999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            animation: modalFadeIn 0.3s ease;
+        }
             
             /* Quiz Modal Content */
             #quizModal .modal-content {
-                width: 100%;
-                max-width: 900px;
-                min-height: auto; 
-                max-height: none;
-                background: white;
-                border-radius: 20px;
-                overflow: visible;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                animation: slideUp 0.4s ease;
-                margin: 20px auto;
-            }
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s ease;
+            margin: 10px auto;
+            max-height: calc(100vh - 40px); /* limit to viewport */
+            overflow-y: auto; /* <- single scroller */
+            -webkit-overflow-scrolling: touch;
+        }
 
             /* Make entire quiz container scrollable */
-            .quiz-container {
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-                scroll-behavior: smooth;
-            }
+           .quiz-container {
+            display: block;
+        }
+
             
             /* Quiz Header - Fixed */
             .quiz-header {
@@ -210,20 +221,13 @@ class QuizUI {
             
             /* Scrollable Quiz Content */
             .quiz-body-scrollable {
-                flex: 1;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding: 0;
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-            }
+            display: block;
+            padding: 0;
+        }
             
             /* Question Container */
             .question-container {
                 padding: 25px 30px;
-                flex: 1;
-                min-height: 0;
             }
             
             .question-text {
